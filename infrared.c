@@ -1,10 +1,5 @@
 #include "simpletools.h"
 
-unsigned long int start_time;
-unsigned long int end_time; 
-unsigned long int total_time;
-
-
 int irRight;
 
 int main()
@@ -13,22 +8,33 @@ int main()
 
   while(1)
   {
-    start_time = CNT;
-    
     freqout(1, 1, 38000);
     irRight = input(2);
-    
-    end_time = CNT;
 
-    total_time = end_time - start_time;
-    
-    print("%c irRight = %d", HOME, irRight);
+    if (irRight == 0) {
 
-    print("\n start time = %u%c",start_time , CLREOL);
-    print("\n end   time = %u%c", end_time, CLREOL);
-    print("\n total time = %u%c", total_time, CLREOL);
-    print("\n system clock freq in Hz = %d%c", CLKFREQ, CLREOL);
+      print("%c Started counter\n", HOME);
+
+
+      unsigned long int count = 0;
+      unsigned long int start_time = CNT;
+
+      for (;;) {
+        freqout(1, 1, 38000);
+        irRight = input(2);
+        
+        count += 1;
+
+        if(CNT > (start_time + CLKFREQ * 5) && count > 0) {
+          print("Aantal metingen in 5 sec = %d\n", count);
+          break;
+        }
+      }
+
+    }
     
-    pause(100);
+    print("%c irRight = %d\n", HOME, irRight);
+    
+    pause(1000);
   }
 }
