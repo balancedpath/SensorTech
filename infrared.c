@@ -38,8 +38,8 @@ int main()
 
         if(CNT > (start_time + CLKFREQ * 1) && count > 0) {
           print("Aantal metingen in 5 sec = %d\n", count);
-                    print("Aantal 0 in 5 sec = %d \nAantal 1 in 5 sec = %d\n", zeroes, ones);
-
+          print("Aantal 0 in 5 sec = %d \nAantal 1 in 5 sec = %d\n", zeroes, ones);
+          
           print("CPU time after count: %u\n", CNT);
 
           break;
