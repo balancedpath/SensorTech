@@ -8,7 +8,7 @@ int main()
 
   while(1)
   {
-    freqout(1, 1, 38000);
+    freqout(1, 1, 38000); // shortest timeMs is 1, so max 1000 pulses per second
     irRight = input(2);
 
     if (irRight == 0) {
