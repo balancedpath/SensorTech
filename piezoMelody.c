@@ -1,14 +1,25 @@
 #include "simpletools.h"                      // Include simple tools
 
-#define SPEAKER_PIN 9
+#define SPEAKER_PIN 4
 
 int myFreqOut(int speakerPin, int freq, int duration, int delay) {
     freqout(speakerPin, duration, freq);
     pause(delay);
 }
 
+int waveSound() {
+  for (int i = 100; i < 500;i++) {
+    freqout(SPEAKER_PIN, 3, i*10);
+  }
+  for (int i = 600; i > 300;i--) {
+    freqout(SPEAKER_PIN, 5, i*10);
+  }
+}  
+
 int main() // Main function
 {
+  
+  waveSound();
     while (1) {
         myFreqOut(SPEAKER_PIN, 660, 100, 150);
         myFreqOut(SPEAKER_PIN, 660, 100, 300);
