@@ -12,7 +12,7 @@ int rotate(int degrees) {
 
 int main()                                    // Main function
 {
-  float dist_wall = 300; // in mm
+  float dist_wall = 100; // in mm
   float dist_cros = sqrt(2*pow(dist_wall,2));
   float dist_roof = dist_cros / 2;
   

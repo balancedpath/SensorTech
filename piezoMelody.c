@@ -8,19 +8,29 @@ int myFreqOut(int speakerPin, int freq, int duration, int delay) {
 }
 
 int waveSound() {
-  for (int i = 100; i < 500;i++) {
-    freqout(SPEAKER_PIN, 3, i*10);
-  }
-  for (int i = 600; i > 300;i--) {
-    freqout(SPEAKER_PIN, 5, i*10);
-  }
-}  
+   for (int i = 8000; i > 100; i--) {
+       freqout(SPEAKER_PIN, 10, i+440);
+       freqout(SPEAKER_PIN, 10, i+261.626);
+       pause(10);
+       
+   }
+   
+   pause(2000);
+   
+   /** for (int i = 100; i < 200; i++) {
+            freqout(SPEAKER_PIN, 1, i * 10);
+        }
+        for (int i = 200; i > 100; i--) {
+            freqout(SPEAKER_PIN, 1, i * 10);
+        }**/
+
+}
 
 int main() // Main function
 {
-  
-  waveSound();
-    while (1) {
+
+    waveSound();
+    /**while (1) {
         myFreqOut(SPEAKER_PIN, 660, 100, 150);
         myFreqOut(SPEAKER_PIN, 660, 100, 300);
         myFreqOut(SPEAKER_PIN, 660, 100, 300);
@@ -177,5 +187,5 @@ int main() // Main function
         myFreqOut(SPEAKER_PIN, 660, 100, 300);
         myFreqOut(SPEAKER_PIN, 770, 100, 550);
         myFreqOut(SPEAKER_PIN, 380, 100, 575);
-    }
+    }**/
 }

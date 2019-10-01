@@ -2,7 +2,7 @@
 #include "simpletools.h"
 #include "abdrive.h"
 
-#define DEGREES -45
+#define DEGREES -25
 
 int main()                    
 {
@@ -12,6 +12,6 @@ int main()
   int amountOfTics = (ticPerDegree * DEGREES);
   
   drive_goto(amountOfTics, amountOfTics * -1);
-  pause(200);
+  pause(1000);
   drive_goto(amountOfTics * -1, amountOfTics);
 }
