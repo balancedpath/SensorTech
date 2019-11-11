@@ -12,7 +12,7 @@ int rotate(int degrees) {
 
 int main()                                    // Main function
 {
-  float dist_wall = 100; // in mm
+  float dist_wall = 150; // in mm
   float dist_cros = sqrt(2*pow(dist_wall,2));
   float dist_roof = dist_cros / 2;
   
@@ -21,27 +21,26 @@ int main()                                    // Main function
   int ticks_roof = dist_roof / 3.25;
  
   drive_goto(ticks_wall, ticks_wall);
-  rotate(45);
+  rotate(46);
   
   drive_goto(ticks_roof, ticks_roof);
-  rotate(90);
+  rotate(91);
   
   drive_goto(ticks_roof, ticks_roof);
-  rotate(45);
+  rotate(46);
   
   drive_goto(ticks_wall, ticks_wall);
-  rotate(90);
+  rotate(91);
   
   drive_goto(ticks_wall, ticks_wall);
-  rotate(135);
+  rotate(136);
   
   drive_goto(ticks_cros, ticks_cros);
-  rotate(-135);
+  rotate(-136);
   
   drive_goto(ticks_wall, ticks_wall);
-  rotate(-135);
+  rotate(-136);
   
   drive_goto(ticks_cros, ticks_cros);
-  rotate(720);
   
 }

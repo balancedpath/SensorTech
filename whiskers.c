@@ -7,7 +7,7 @@ int main()
   for(;;) {    
       // as long as there's no initial touch, continue
       if (input(8)) { continue; }
-      
+      printf("Beginning measurement\n");
       unsigned long int count = 0;
       unsigned long int start_time = CNT;
       int prv = 0;

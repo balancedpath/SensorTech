@@ -1,5 +1,6 @@
 #include "simpletools.h"
 #include "abdrive.h"
+#include "math.h"
 #include "ping.h"
 
 typedef struct __WALL_E {
@@ -10,18 +11,19 @@ typedef struct __CENTIMETER {
     int distance;
 } Centimeter;
 
+typedef struct __SMALLEST {
+    Centimeter distance;
+    float degrees;    
+} Smallest;
+
 typedef struct __ROTATOR {
-    int speed;  
+    int ticks;
+    float current_degrees;
+    float degrees_per_turn;
+    Smallest smallest;    
 } Rotator;
 
-typedef struct __DEGREES {
-    int value;    
-} Degrees;
-
-typedef struct __SMALLEST {
-    int distance;
-    int idx;    
-} Smallest;
+const WALL_E EYES = { 8 };
 
 Centimeter measure_distance(const WALL_E * eyes) {
     int distance = ping_cm(eyes->pin);
@@ -29,74 +31,100 @@ Centimeter measure_distance(const WALL_E * eyes) {
     return cm;
 }
 
-Rotator rotator_from_degrees(Degrees degrees) {
+float ticks_per_degree() {
     static float radius = 664.76;
     static float tick_distance = 3.25;
-    float tick_per_degree = radius / tick_distance / 360 / 2;
-    int rotation_speed = tick_per_degree * degrees.value;
     
-    Rotator rotator = { rotation_speed };
+    float tick_per_degree = radius / tick_distance / 360.0 / 2.0;
+    
+    return tick_per_degree;      
+}
+
+float degree_per_tick() {
+    return 1.0 / ticks_per_degree();    
+}
+
+Rotator rotator_from_ticks(int ticks) {
+    Rotator rotator;
+    Smallest smallest;
+    
+    float degrees_per_turn = degree_per_tick() * ticks;
+    
+    rotator.ticks = ticks;
+    rotator.current_degrees = 0.0;
+    rotator.degrees_per_turn = degrees_per_turn;
+    
+    Centimeter cm = {0xffff};
+    smallest.distance = cm;
+    smallest.degrees = 0.0;
+    
+    rotator.smallest = smallest;
     return rotator;
 }
 
-void rotate_to(int rotation) {
-    drive_goto(rotation, rotation * -1);
+int has_rotated_360(const Rotator * rotator) {
+    return rotator->current_degrees > 360.0;    
 }
 
-void rotate(const Rotator * rotator) {
-    rotate_to(rotator->speed);    
-}
+// Indicates whether scanning has completed
+enum Poll { Complete = 0, NotComplete = 1 };
 
-void rotate_rev(const Rotator * rotator) {
-    rotate_to(rotator->speed * -1);   
-}
-
-const WALL_E EYES = { 8 };
-const Degrees DEGREES_PER_MEASUREMENT = { 20 };
-const Degrees MEASUREMENT_RANGE = { 360 };
-
-float TICKS_PER_ROUND = 64;
-
-// Diameter in mm
-float DIAMETER_MM = 208;
-float distance_to_ticks(int distance) {
-  
-  float TICK_DISTANCE = DIAMETER_MM / TICKS_PER_ROUND;
-  return (distance / TICK_DISTANCE);  
-}
-
-int main()
-{
-    Rotator rotator = rotator_from_degrees(DEGREES_PER_MEASUREMENT);
-    int NUMBER_OF_MEASUREMENTS = MEASUREMENT_RANGE.value / DEGREES_PER_MEASUREMENT.value;
-     
-    for(;;) {
-        Smallest current_smallest = {0xff, 0};
-        
-        for(int idx = 0; idx <= NUMBER_OF_MEASUREMENTS; idx++) {
-            Centimeter measured = measure_distance(&EYES);
-            
-            if (measured.distance < current_smallest.distance) {
-                current_smallest.distance = measured.distance;
-                current_smallest.idx = idx;    
-            }
-            
-            rotate(&rotator);
-            
-            print("The distance was %d\n", measured.distance);
-            print("Current smallest dst %d with idx %d\n", current_smallest.distance, current_smallest.idx);
-            pause(500);
-        }
-        
-        Degrees degrees_to_rotate_back = {(NUMBER_OF_MEASUREMENTS - 1 - current_smallest.idx) * DEGREES_PER_MEASUREMENT.value};
-        
-        Rotator rev = rotator_from_degrees(degrees_to_rotate_back);
-        rotate_rev(&rev);
-        
-        int ticks = distance_to_ticks((current_smallest.distance + 5) * 10);
-        drive_goto(ticks, ticks);
-        pause(200);
-        drive_goto(-ticks, -ticks);
-        pause(2500);
+// Rotates the device, and measures the distance.
+// If the measurement is smaller than the current
+// smallest, sets the measurement as smallest,
+// and remembers the current rotation.
+// Returns `Complete` if device already rotated > 360 degrees,
+// `NotComplete` otherwise.
+enum Poll poll_rotator(Rotator * rotator) {
+    if(has_rotated_360(rotator)) {
+        return Complete;
     }
-}    
+    
+    drive_goto(rotator->ticks, rotator->ticks * -1);
+    
+    rotator->current_degrees += rotator->degrees_per_turn;
+    
+    Centimeter distance = measure_distance(&EYES);
+    
+    if(distance.distance < rotator->smallest.distance.distance) {
+        rotator->smallest.distance = distance;
+        rotator->smallest.degrees = rotator->current_degrees;    
+    }
+    
+    return NotComplete;
+}
+
+void rotate_towards_closest_object(Rotator * rotator) {
+    
+    float difference = rotator->current_degrees - rotator->smallest.degrees;
+    
+    float times_to_turn = difference / rotator->degrees_per_turn;
+    
+    int speed = times_to_turn * rotator->ticks;
+    drive_goto(-speed, speed);
+}
+
+float distance_to_ticks(int distance) {
+    
+    static float TICKS_PER_ROUND = 64;
+    static float DIAMETER_MM = 208;
+
+    float TICK_DISTANCE = DIAMETER_MM / TICKS_PER_ROUND;
+    return (distance / TICK_DISTANCE);  
+}
+
+int main() {
+    for(;;) {
+        Rotator rotator = rotator_from_ticks(4);
+    
+        while(poll_rotator(&rotator)) {pause(100);}
+        rotate_towards_closest_object(&rotator);
+        
+        int ticks = distance_to_ticks((rotator.smallest.distance.distance * 10 + 5));
+        
+        drive_goto(ticks, ticks);
+        pause(2000);
+        drive_goto(-ticks, -ticks);
+        pause(2000);
+    }  
+}
